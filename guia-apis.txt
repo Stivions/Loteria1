@@ -1,0 +1,113 @@
+Guía de Configuración de APIs para Loterías Dominicanas
+
+1. APIs Recomendadas:
+
+a) API de Lotería Nacional (http://loteria-nacional.com.do/api)
+   - Endpoint principal: /resultados
+   - Parámetros: fecha, tipo_sorteo
+   - Autenticación requerida: API Key
+
+b) API de Leidsa (https://leidsa.com/api)
+   - Endpoint principal: /sorteos
+   - Parámetros: fecha, juego
+   - Autenticación: OAuth 2.0
+
+c) APIs alternativas:
+   - Loteka API
+   - Real Lottery API
+   - La Primera API
+
+2. Pasos para Integración:
+
+2.1. Obtener Acceso a las APIs:
+   - Registrarse en los portales de desarrolladores de cada lotería
+   - Solicitar credenciales de API (API keys, tokens)
+   - Revisar límites de uso y costos
+
+2.2. Configuración en el Proyecto:
+   - Crear archivo .env para almacenar credenciales
+   - Configurar variables de entorno:
+     LOTERIA_NACIONAL_API_KEY=tu_api_key
+     LEIDSA_CLIENT_ID=tu_client_id
+     LEIDSA_CLIENT_SECRET=tu_client_secret
+
+2.3. Implementar Servicios:
+   - Crear carpeta src/services
+   - Implementar cliente HTTP (axios o fetch)
+   - Crear servicios separados para cada lotería
+
+3. Estructura de Datos Recomendada:
+
+```typescript
+interface ResultadoLoteria {
+  loteria: string;
+  fecha: string;
+  horario: string;
+  numeros: string[];
+  tipo: 'quiniela' | 'pale' | 'tripleta' | 'loto';
+}
+
+interface ResponseLoteriaNacional {
+  fecha: string;
+  sorteo: string;
+  resultados: number[];
+  // ... otros campos específicos
+}
+```
+
+4. Manejo de Errores y Caché:
+   - Implementar retry logic para fallos de API
+   - Cachear resultados por 5-10 minutos
+   - Mantener fallback a últimos resultados conocidos
+
+5. Consideraciones de Rendimiento:
+   - Implementar lazy loading para resultados históricos
+   - Limitar número de requests simultáneos
+   - Usar web workers para procesamiento pesado
+
+6. Próximos Pasos:
+
+a) Desarrollo:
+   1. Implementar servicios base
+   2. Crear componentes de UI
+   3. Manejar estados de carga y error
+   4. Implementar caché local
+
+b) Pruebas:
+   1. Probar con datos reales
+   2. Verificar manejo de errores
+   3. Validar rendimiento
+
+c) Producción:
+   1. Monitorear uso de API
+   2. Implementar analytics
+   3. Optimizar caché y rendimiento
+
+7. Ejemplo de Implementación de Servicio:
+
+```typescript
+// src/services/loteriaNacional.ts
+export async function obtenerResultados(fecha: string) {
+  try {
+    const response = await fetch(
+      `${process.env.LOTERIA_NACIONAL_API}/resultados?fecha=${fecha}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.LOTERIA_NACIONAL_API_KEY}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Error al obtener resultados');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+}
+```
+
+NOTA: Las URLs y estructuras de API son ejemplos. Deberás contactar a cada proveedor de lotería para obtener acceso a sus APIs reales y documentación específica.
